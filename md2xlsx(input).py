@@ -1,15 +1,19 @@
-import pandas 
-import re
 import os
+import re
+
+import pandas
+
+
 def extract_part_text(md_content, pattern):
     """Извлекает разделы текста между метками частей из Markdown-контента.
 
-    Функция ищет все вхождения заданного шаблона (например, "ЧАСТЬ 1") и извлекает текст между ними.
+    Функция ищет все вхождения заданного шаблона (например, "ЧАСТЬ 1")
+    извлекает текст между ними.
     Возвращает список словарей с номером части и соответствующим текстом.
 
     Args:
         md_content: Исходный текст в формате Markdown.
-        pattern: Регулярное выражение для поиска разделов (например, r'\\section\*\{ЧАСТЬ\s*(\d)+\}').
+        pattern: Регулярное выражение для поиска разделов.
 
     Returns:
         Список словарей вида [{'part': '1', 'unparced_text': '...'}, ...], где:
@@ -24,13 +28,15 @@ def extract_part_text(md_content, pattern):
     while True:
         start_match = re.search(pattern, md_content, re.IGNORECASE)
         if not start_match:
-            break  
+            break
 
         start_pos = start_match.end()
 
         end_match = re.search(pattern, md_content[start_pos:], re.IGNORECASE)
         part_number = re.search(r'(\d)+',
-                                md_content[start_match.start():start_match.end()])
+                                md_content[start_match.start(
+
+                                ):start_match.end()])
         if end_match:
             end_pos = start_pos + end_match.start()
             part_number = re.search(
@@ -52,6 +58,7 @@ def extract_part_text(md_content, pattern):
         break
     return data
 
+
 def parcer(content):
     """Парсит необработанный текст вопросов из разделов.
 
@@ -62,17 +69,18 @@ def parcer(content):
     - Подписи к рисункам
 
     Args:
-        content: Список словарей с необработанным текстом (результат extract_part_text()).
+        content: Список словарей с необработанным текстом
+        (результат extract_part_text()).
 
     Returns:
         Список словарей с распарсенными данными вида:
         [
             {
-                'part': '2', 
-                'quest_number': 'В1', 
-                'quest': 'Текст вопроса...', 
+                'part': '2',
+                'quest_number': 'В1',
+                'quest': 'Текст вопроса...',
                 'pix': 'http://example.com/image.jpg'
-            }, 
+            },
             ...
         ]
         Отсутствующие ключи заполняются значением None.
@@ -93,7 +101,7 @@ def parcer(content):
                 parts['quest_number'] = quest_number_match.group()[:-1]
                 parts['quest'] = item[quest_number_match.end():]
             elif item[0:3] == '![]':
-                parts['pix'] = item[4:-1] 
+                parts['pix'] = item[4:-1]
             elif item[:4].lower() == 'Рис.'.lower():
                 parts['quest_number'] += f'\n\n{item}'
             elif item != '' or re.search('^.+', item):
@@ -104,13 +112,15 @@ def parcer(content):
                 parts = {
                     'part': part_number['part']
                 }
-            
+
     return parced_text
+
 
 def parse_md_to_excel(content):
     """Сохраняет распарсенные данные в Excel-файл.
 
-    Преобразует структурированные данные в DataFrame и сохраняет их в output.xlsx.
+    Преобразует структурированные данные в DataFrame и
+    сохраняет их в output.xlsx.
     Автоматически обрабатывает отсутствующие значения и задает порядок колонок.
 
     Args:
@@ -131,7 +141,6 @@ def parse_md_to_excel(content):
     for row in content:
         all_keys.update(row.keys())
 
-    # Заполняем отсутствующие ключи значением None
     processed_data = []
     for row in content:
         new_row = {key: row.get(key, None) for key in all_keys}
@@ -139,8 +148,6 @@ def parse_md_to_excel(content):
 
     columns_order = ['part', 'quest_number', 'quest', 'pix']
 
-
-    # # Парсинг и сохранение в .xlsx
     df = pandas.DataFrame(processed_data, columns=columns_order,)
     df.rename(columns={
         'part': 'Часть',
@@ -152,15 +159,14 @@ def parse_md_to_excel(content):
     df.to_excel('output.xlsx', index=False, engine='openpyxl')
 
 
-
-
-if __name__=='__main__':
-
-    file_path = os.path.abspath(input('Введите путь относительно текущего каталога:\n'))
+if __name__ == '__main__':
+    file_path = os.path.abspath(input(
+        'Введите путь относительно текущего каталога:\n'))
     if not os.path.exists(file_path):
         exit('неверный путь к файлу')
 
-    with open('92e27331-e7eb-4794-947a-7fe3d2df18cd (1) (1).md', 'r', encoding='utf-8') as f:
+    with open('92e27331-e7eb-4794-947a-7fe3d2df18cd (1) (1).md', 'r',
+              encoding='utf-8') as f:
         md_content = f.read()
 
     text = extract_part_text(
